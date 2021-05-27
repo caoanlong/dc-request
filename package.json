@@ -1,0 +1,59 @@
+{
+  "name": "dc-request",
+  "version": "0.1.0",
+  "description": "A request client via electron",
+  "private": true,
+  "author": "Aaron",
+  "main": "public/electron.js",
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "electron-dev": "concurrently -s first -k \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-b": "craco build && electron-builder",
+    "electron-pack": "electron-builder build --mac --win --linux deb --x64 --arm64 --c.extraMetadata.main=build/electron.js -c.mac.identity=null"
+  },
+  "build": {
+    "appId": "com.dc.request",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "homepage": "./",
+  "dependencies": {
+    "electron-is-dev": "^2.0.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "styled-components": "^5.3.0"
+  },
+  "devDependencies": {
+    "@craco/craco": "^6.1.2",
+    "concurrently": "^6.2.0",
+    "electron": "^13.0.1",
+    "electron-builder": "^22.10.5",
+    "wait-on": "^5.3.0"
+  }
+}
