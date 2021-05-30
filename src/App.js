@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import qs from 'qs'
 import styled from 'styled-components'
 import Params from './components/Params'
 import Response from './components/Response'
@@ -21,20 +22,6 @@ const ResponseStyle = styled.div`
   position: relative;
 `
 
-const defaultConfig = {
-  id: uuidv4(),
-  method: 'GET',
-  url: '',
-  req: 'params',
-  params: [{ key: '', value: '' }],
-  body: '',
-  bodyType: 'JSON', // form-data, x-www-form-urlencoded, JSON
-  headers: {},
-  res: '',
-  status: -1,
-  time: 0,
-  size: 0
-}
 const getDefaultConfig = () => {
   return {
     id: uuidv4(),
@@ -61,6 +48,24 @@ function App() {
   const [ list, setList ] = useState([getDefaultConfig()])
   const [ itemIndex, setItemIndex ] = useState(0)
 
+  const send = () => {
+
+  }
+  const onChange = (e) => {
+    if (!e.target.value) return
+    list[itemIndex].url = e.target.value
+    const str = e.target.value.split('?')[1]
+    if (!str) return
+    const obj = qs.parse(str)
+    if (!obj || obj.length === 0) return
+    const params = []
+    for (const key in obj) {
+      params.push({ key, value: obj[key] })
+    }
+    list[itemIndex].params = params
+    setList([...list])
+  }
+
   const addItem = () => {
     setList([ ...list, getDefaultConfig()])
   }
@@ -82,6 +87,16 @@ function App() {
   }
   const handleDelParams = (i) => {
     list[itemIndex].params = list[itemIndex].params.filter((param, idx) => idx !== i)
+    const params = {}
+    for (let i = 0; i < list[itemIndex].params.length; i++) {
+      const obj = list[itemIndex].params[i]
+      params[obj.key] = obj.value
+    }
+    const str = qs.stringify(params)
+    console.log(str)
+    console.log(list[itemIndex].url.split('?')[0])
+    list[itemIndex].url = list[itemIndex].url.split('?')[0] + '?' + str
+    console.log(list[itemIndex].url)
     setList([...list])
   }
   const handleChangeParamKey = (e, i) => {
@@ -126,8 +141,20 @@ function App() {
             <option value="GET">GET</option>
             <option value="POST">POST</option>
           </select>
-          <InputStyle className="btn btn-large btn-default" type="text" placeholder="请输入URL" />
-          <button className="btn btn-large btn-primary" style={{width: '80px'}}>发送</button>
+          <InputStyle 
+            className="btn btn-large btn-default" 
+            type="text" 
+            placeholder="请输入URL" 
+            defaultValue={list[itemIndex].url}
+            key={itemIndex + list[itemIndex].url}
+            onChange={onChange}>
+          </InputStyle>
+          <button 
+            className="btn btn-large btn-primary" 
+            style={{width: '80px'}} 
+            onClick={send}>
+            发送
+          </button>
         </div>
         <div className="btn-group" style={{margin: '10px 4px'}}>
           {
