@@ -10,6 +10,9 @@
     "build": "craco build",
     "test": "craco test",
     "electron-dev": "concurrently -s first -k \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "build:mac": "craco build && electron-builder --mac --x64",
+    "build:win": "craco build && electron-builder --win --x64",
+    "build:all": "craco build && electron-builder --mac --win --x64",
     "electron-b": "craco build && electron-builder",
     "electron-pack": "electron-builder build --mac --win --linux deb --x64 --arm64 --c.extraMetadata.main=build/electron.js -c.mac.identity=null"
   },
@@ -21,6 +24,12 @@
     ],
     "directories": {
       "buildResources": "assets"
+    },
+    "mac": {
+      "icon": "icon.png"
+    },
+    "win": {
+      "icon": "icon.png"
     }
   },
   "eslintConfig": {
@@ -43,11 +52,15 @@
   },
   "homepage": "./",
   "dependencies": {
+    "axios": "^0.21.1",
     "electron-is-dev": "^2.0.0",
+    "jsoneditor": "^9.4.1",
+    "jsrsasign": "^10.2.0",
     "qs": "^6.10.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
+    "react-spinners": "^0.11.0",
     "styled-components": "^5.3.0",
     "uuid": "^8.3.2"
   },
@@ -56,6 +69,7 @@
     "concurrently": "^6.2.0",
     "electron": "^13.0.1",
     "electron-builder": "^22.10.5",
+    "electron-store": "^8.0.0",
     "wait-on": "^5.3.0"
   }
 }

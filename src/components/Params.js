@@ -1,5 +1,10 @@
 import styled from 'styled-components'
 
+const ParamsStyle = styled.div`
+    padding: 0 10px;
+    height: 100%;
+    overflow: hidden auto;
+`
 const InputStyle = styled.input`
     width: 100%;
     padding: 0 5px;
@@ -10,7 +15,7 @@ const InputStyle = styled.input`
 const Params = ({ params, onAddParams, onDelParams, onChangeParamKey, onChangeParamValue }) => {
 
     return (
-        <div style={{padding: '0 10px'}}>
+        <ParamsStyle>
             <div style={{padding: '10px 0', color: '#999'}}>
                 <span>Query Params</span>
                 <button 
@@ -55,7 +60,7 @@ const Params = ({ params, onAddParams, onDelParams, onChangeParamKey, onChangePa
                     }
                 </tbody>
             </table>
-        </div>
+        </ParamsStyle>
     )
 }
 
