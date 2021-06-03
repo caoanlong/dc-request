@@ -45,15 +45,11 @@ const Params = ({ params, onAddParams, onDelParams, onChangeParamKey, onChangePa
                                     <InputStyle type="text" defaultValue={item.value} onChange={(e) => onChangeParamValue(e, i)}/>
                                 </td>
                                 <td>
-                                    {
-                                        params.length <= 1 
-                                            ? <></> 
-                                            : <button 
-                                                className="btn btn-mini btn-default" 
-                                                onClick={() => onDelParams(i)}>
-                                                <span className="icon icon-trash"></span>
-                                            </button>
-                                    }
+                                    <button 
+                                        className="btn btn-mini btn-default" 
+                                        onClick={() => onDelParams(i)}>
+                                        <span className="icon icon-trash"></span>
+                                    </button>
                                 </td>
                             </tr>
                         ))

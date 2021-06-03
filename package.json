@@ -1,6 +1,6 @@
 {
   "name": "dc-request",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A request client via electron",
   "private": true,
   "author": "Aaron",
@@ -26,10 +26,10 @@
       "buildResources": "assets"
     },
     "mac": {
-      "icon": "icon.png"
+      "icon": "public/icon.png"
     },
     "win": {
-      "icon": "icon.png"
+      "icon": "public/icon.png"
     }
   },
   "eslintConfig": {
@@ -52,15 +52,17 @@
   },
   "homepage": "./",
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^3.1.2",
     "axios": "^0.21.1",
     "electron-is-dev": "^2.0.0",
+    "electron-store": "^8.0.0",
     "jsoneditor": "^9.4.1",
     "jsrsasign": "^10.2.0",
+    "light-toast": "^0.3.3",
     "qs": "^6.10.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
-    "react-spinners": "^0.11.0",
     "styled-components": "^5.3.0",
     "uuid": "^8.3.2"
   },
@@ -69,7 +71,6 @@
     "concurrently": "^6.2.0",
     "electron": "^13.0.1",
     "electron-builder": "^22.10.5",
-    "electron-store": "^8.0.0",
     "wait-on": "^5.3.0"
   }
 }

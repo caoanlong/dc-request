@@ -1,10 +1,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const isDev = require('electron-is-dev')
 const path = require('path')
-// const Store = require('electron-store')
-// const { KEYUTIL } = require('jsrsasign')
+const Store = require('electron-store')
+const { KEYUTIL } = require('jsrsasign')
 
-// const store = new Store()
+const store = new Store()
 let mainWindow, privateKey, publicKey
 
 function createWindow() {
@@ -23,6 +23,11 @@ function createWindow() {
             ? 'http://localhost:3000' 
             : `file://${path.join(__dirname, "../build/index.html")}`
     )
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('rsaKeypair', {
+            privateKey, publicKey
+        })
+    })
 }
 
 app.whenReady().then(() => {
@@ -31,19 +36,16 @@ app.whenReady().then(() => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
     })
 
-    // if (!store.has('privateKey') || !store.has('publicKey')) {
-    //     const rsaKeypair = KEYUTIL.generateKeypair('RSA', 2028)
-    //     privateKey = KEYUTIL.getPEM(rsaKeypair.prvKeyObj, "PKCS1PRV")
-    //     publicKey = KEYUTIL.getPEM(rsaKeypair.pubKeyObj)
-    //     store.set('privateKey', privateKey)
-    //     store.set('publicKey', publicKey)
-    // } else {
-    //     privateKey = store.get('privateKey')
-    //     publicKey = store.get('publicKey')
-    // }
-    // mainWindow.webContents.send('rsaKeypair', {
-    //     privateKey, publicKey
-    // })
+    if (!store.has('privateKey') || !store.has('publicKey')) {
+        const rsaKeypair = KEYUTIL.generateKeypair('RSA', 2028)
+        privateKey = KEYUTIL.getPEM(rsaKeypair.prvKeyObj, "PKCS1PRV")
+        publicKey = KEYUTIL.getPEM(rsaKeypair.pubKeyObj)
+        store.set('privateKey', privateKey)
+        store.set('publicKey', publicKey)
+    } else {
+        privateKey = store.get('privateKey')
+        publicKey = store.get('publicKey')
+    }
 })
 
 app.on('window-all-closed', () => {

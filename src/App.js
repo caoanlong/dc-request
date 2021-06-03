@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import qs from 'qs'
 import axios from 'axios'
+import Toast from 'light-toast'
+import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import 'jsoneditor/dist/jsoneditor.min.css'
 import styled from 'styled-components'
 import Params from './components/Params'
 import ReqBody from './components/ReqBody'
 import Headers from './components/Headers'
 import Response from './components/Response'
-import { sizeof } from './utils'
+import { sizeof, sign } from './utils'
 
 const InputStyle = styled.input`
   flex: 1;
@@ -41,9 +43,14 @@ const getDefaultConfig = () => {
     url: '',
     req: 'params',
     params: [{ key: '', value: '' }],
-    body: {},
+    body: {
+      client_type: '11',
+      appid: 'BITOLLWALLETDEMO'
+    },
     bodyType: 'JSON', // form-data, x-www-form-urlencoded, JSON
-    headers: {},
+    headers: [
+      { key: 'content-type', value: 'application/json; charset=UTF-8' }
+    ],
     res: '',
     status: '',
     time: 0,
@@ -56,18 +63,38 @@ const reqs = [
   { label: 'Headers', value: 'headers' }
 ]
 
-// window.electron.ipcRenderer.on('rsaKeypair', (e, { privateKey, publicKey }) => {
-//   console.log(privateKey, publicKey)
-//   localStorage.setItem('privateKey', privateKey)
-//   localStorage.setItem('publicKey', publicKey)
-// })
+// 接收主进程传过来的密钥对
+window.electron.ipcRenderer.on('rsaKeypair', (e, { privateKey, publicKey }) => {
+  localStorage.setItem('privateKey', privateKey)
+  localStorage.setItem('publicKey', publicKey)
+})
+let deviceId = localStorage.getItem('deviceId')
+if (!deviceId) {
+  FingerprintJS.load().then(fp => {
+    fp.get().then(result => {
+      deviceId = result.visitorId
+      localStorage.setItem('deviceId', deviceId)
+    })
+  })
+}
 
+
+const EnableSign = ({ isSign, onChange }) => {
+  return <label style={{marginLeft: '20px'}}>
+    <input 
+      style={{position: 'relative', top: '2px', marginRight: '2px'}} 
+      type="checkbox" 
+      checked={isSign} 
+      onChange={onChange}/>
+      <span>开启签名</span>
+  </label>
+}
 function App() {
   const [ list, setList ] = useState([getDefaultConfig()])
   const [ itemIndex, setItemIndex ] = useState(0)
+  const [ isSign, setIsSign ] = useState(false)
 
   const send = () => {
-    console.log(list[itemIndex])
     if (!list[itemIndex].url) {
       alert('URL地址不能为空！')
       return
@@ -79,10 +106,9 @@ function App() {
     // 判断是否有params
     const params = {}
     let hasParams = false
-    for (let i = 0; i < list[itemIndex].params.length; i++) {
-      const param = list[itemIndex].params[i]
-      if (param.key && param.value) {
-        params[param.key] = param.value
+    for (const { key, value } of list[itemIndex].params) {
+      if (key && value) {
+        params[key] = value
         hasParams = true
       }
     }
@@ -92,27 +118,42 @@ function App() {
     // 判断是否有请求体data
     if (list[itemIndex].req === 'body' && list[itemIndex].method === 'POST' && Object.keys(list[itemIndex].body).length > 0) {
       config.data = list[itemIndex].body
+      if (isSign) {
+        config.data.seq = parseInt(new Date().getTime() * 0.001) + '-' + config.data.retrieve
+        config.data.sign_type = 'SHA256WithRSAClient'
+        const privateKey = localStorage.getItem('privateKey')
+        config.data.sign = sign(privateKey, config.data)
+        list[itemIndex].body = config.data
+        setList([...list])
+      }
     }
-
+    Toast.loading()
     axios(config).then(res => {
-      console.log(res)
       list[itemIndex].status = res.status
       list[itemIndex].res = typeof res.data === 'object' 
         ? JSON.stringify(res.data, null, 4) 
         : res.data
       list[itemIndex].size = sizeof(list[itemIndex].res)
       setList([...list])
+      Toast.hide()
     }).catch(err => {
-      console.log(err.response)
-      for (const key in err.response) {
-        console.log(key, err.response[key])
+      console.log(err)
+      if (!err.response) {
+        list[itemIndex].res = err.toJSON().message
+        setList([...list])
+        Toast.hide()
+        return
       }
+      // for (const key in err.response) {
+      //   console.log(key, err.response[key])
+      // }
       list[itemIndex].status = err.response.status
       list[itemIndex].res = typeof err.response.data === 'object' 
         ? JSON.stringify(err.response.data, null, 4) 
         : err.response.data
       list[itemIndex].size = sizeof(list[itemIndex].res)
       setList([...list])
+      Toast.hide()
     })
   }
   const onChange = (e) => {
@@ -152,9 +193,8 @@ function App() {
   const handleDelParams = (i) => {
     list[itemIndex].params = list[itemIndex].params.filter((param, idx) => idx !== i)
     const params = {}
-    for (let i = 0; i < list[itemIndex].params.length; i++) {
-      const obj = list[itemIndex].params[i]
-      params[obj.key] = obj.value
+    for (const { key, value } of list[itemIndex].params) {
+      params[key] = value
     }
     const str = qs.stringify(params)
     list[itemIndex].url = list[itemIndex].url.split('?')[0] + '?' + str
@@ -171,6 +211,25 @@ function App() {
     list[itemIndex].body = body
   }
 
+  const handleAddHeaders = () => {
+    list[itemIndex].headers = [...list[itemIndex].headers, { key: '', value: '' }]
+    setList([...list])
+  }
+  const handleDelHeaders = (i) => {
+    list[itemIndex].headers = list[itemIndex].headers.filter((header, idx) => idx !== i)
+    setList([...list])
+  }
+  const handleChangeHeaderKey = (e, i) => {
+    list[itemIndex].headers[i].key = e.target.value
+  }
+  const handleChangeHeaderValue = (e, i) => {
+    list[itemIndex].headers[i].value = e.target.value
+  }
+
+  const handleSignChange = (e) => {
+    setIsSign(e.target.checked)
+  }
+
   const Request = () => {
     if (list[itemIndex].req === 'params') {
       return (
@@ -185,7 +244,14 @@ function App() {
     } else if (list[itemIndex].req === 'body') {
       return (<ReqBody body={list[itemIndex].body} setBody={handleSetBody}></ReqBody>)
     } else {
-      return (<Headers headers={list[itemIndex].headers}></Headers>)
+      return (
+        <Headers 
+          headers={list[itemIndex].headers} 
+          onAddHeaders={handleAddHeaders} 
+          onDelHeaders={handleDelHeaders} 
+          onChangeHeaderKey={handleChangeHeaderKey} 
+          onChangeHeaderValue={handleChangeHeaderValue}>
+        </Headers>)
     }
   }
 
@@ -250,6 +316,7 @@ function App() {
               </button>
             ))
           }
+          <EnableSign isSign={isSign} onChange={handleSignChange}></EnableSign>
         </div>
       </div>
       <RequestStyle>
