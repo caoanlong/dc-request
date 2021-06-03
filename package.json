@@ -11,6 +11,7 @@
     "test": "craco test",
     "electron-dev": "concurrently -s first -k \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
     "build:mac": "craco build && electron-builder --mac --x64",
+    "build:macm1": "craco build && electron-builder --mac --arm64",
     "build:win": "craco build && electron-builder --win --x64",
     "build:all": "craco build && electron-builder --mac --win --x64",
     "electron-b": "craco build && electron-builder",
