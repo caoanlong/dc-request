@@ -13,7 +13,8 @@
     "build:mac": "craco build && electron-builder --mac --x64",
     "build:macm1": "craco build && electron-builder --mac --arm64",
     "build:win": "craco build && electron-builder --win --x64",
-    "build:all": "craco build && electron-builder --mac --win --x64",
+    "build:linux": "craco build && electron-builder --linux",
+    "build:all": "craco build && electron-builder --mac --win --linux --x64",
     "electron-b": "craco build && electron-builder",
     "electron-pack": "electron-builder build --mac --win --linux deb --x64 --arm64 --c.extraMetadata.main=build/electron.js -c.mac.identity=null"
   },
@@ -30,6 +31,9 @@
       "icon": "public/icon.png"
     },
     "win": {
+      "icon": "public/icon.png"
+    },
+    "linux": {
       "icon": "public/icon.png"
     }
   },
